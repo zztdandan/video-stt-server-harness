@@ -7,8 +7,5 @@
 models/
 config.ini
 
-# Child repo is managed independently
-whisper-stt/
-
 # Worktrees for child repo development only
 .worktrees/
