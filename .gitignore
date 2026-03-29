@@ -1,0 +1,14 @@
+.DS_Store
+.idea/
+.vscode/
+
+# Local runtime/config artifacts
+.venv/
+models/
+config.ini
+
+# Child repo is managed independently
+whisper-stt/
+
+# Worktrees for child repo development only
+.worktrees/
