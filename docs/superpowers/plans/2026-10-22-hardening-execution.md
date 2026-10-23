@@ -1,6 +1,17 @@
 # 可靠性与翻译链路加固执行记录
 
-## 最新续作状态（2026-10-23 23:16 用户授权改官方模型，优先于下方历史）
+## 最新续作状态（2026-10-24 发布完成，优先于下方历史）
+
+- 用户授权后实施代理改为官方 DeepSeek V4.1 Flash（deepseek-official/deepseek-flash）；剩余七项 P1 全部修复并由 GPT-6.1-Sol 用原真 SQLite/文件反例独立复验关闭。
+- 后续 clean-runner CI 修复：1) uv.lock 从隐式 TUNA 默认源归一为显式公共 PyPI（pyproject 增加 `[[tool.uv.index]] name="pypi" default=true`；root 同）；2) service.log 在 configure_logging 时立即创建（不再依赖首条日志）；3) 脚本模式 wav 契约校验先于 ffprobe，且 `_probe_duration` 对缺失 ffprobe 返回 None 仅降级进度。
+- 子仓库提交序列（feature/reliability-hardening → main FF）：bba96a0 实现 → 66678d0 锁可移植 → 2623545 clean-runner 修复 → 5e67c7b 验收证据文档 → c88cc80 第二绿文档。main 已 FF 到 c88cc80 并 push；annotated tag v0.5.0（object 6732f9c4a48ef2699f553ba49b8c33c31b4dbf44）。
+- 远端 CI 事实：39981535390 @ bba96a0 failure（lock TUNA）、39995654486 @ 66678d0 failure（clean-runner 2 用例）、39996457310 @ 2623545 success、39997343133 @ 5e67c7b success；c88cc80 新 run 39997953791（父已发起并收集）。
+- 主仓库 commit ee1cf98：docs/00-04、根 pyproject.toml/uv.lock（补 prometheus-client、公共 PyPI 归一）、.gitignore（含 .codex/、secret 规则）、子仓库 gitlink；AGENTS.md 与 scripts/run_shutdown_round.sh 为用户既有改动未纳入。
+- 本地验证：全量 pytest 532 passed/5 deselected；集成后（whisper-stt main）targeted 49 passed；secret scanner + selftest 通过；child/root `uv lock --check` 在干净 HOME（无镜像 env）exit 0；CPU 源覆盖 dry-run 解析 torch==2.8.0+cpu 且 0 个 nvidia-*。
+- 最终独立验收代理 `1783ee97-c8e0-4750-b564-65e5dc4690d8`（GPT-6.1-Sol high）正在对交付快照做 A–I 最终验收，报告将落 docs/superpowers/executions/2026-10-24-sol-final-acceptance-v0.5.0.md。
+- 外部不可验证项（如实记录，非本次失败）：真实 2h 媒体四条 /srv/media 路径不存在；NVML GPU access blocked by OS，无显存峰值；供应商侧 HF/API token 轮换需人工执行。
+
+## 历史续作状态（2026-10-23 23:16 官方模型切换）
 
 - 用户已明确将实施子模型改为官方DeepSeek V4.1 Flash，route deepseek-official/deepseek-flash；goal已edit+resume，revision5 active，旧CC QUOTA不再阻止使用新授权模型。最终仍GPT-6.1-Sol独立验收。
 - 官方实施并行：runtime+repo租约/发布修复 `dfc9e837-f0eb-4d39-ab17-df98187d99e3`；atomic/翻译/CLI `0df2f345-74f5-42ef-9a13-3c5e38471634`（已完成）；CI/README/主docs00-04 `1dbca2f2-049f-4601-8d9f-c8a928ffcc9d`。旧实施代理不再有编辑任务，避免冲突。
