@@ -9,3 +9,15 @@ config.ini
 
 # Worktrees for child repo development only
 .worktrees/
+.playwright-cli/
+.opencode/
+# Agent/tooling state (SPEC I explicitly requires ignoring .codex/)
+.codex/
+
+# Secrets: never commit tokens or key material (SPEC H)
+# —— docs/hf-token.md 已删除，HF token 改用 HF_TOKEN 环境变量。
+docs/hf-token.md
+docs/*token*
+*.token
+token.env
+.env
