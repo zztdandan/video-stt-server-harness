@@ -160,10 +160,10 @@ curl -s -H "X-API-Token: $TOKEN" http://127.0.0.1:18000/readyz
 curl -s -H "X-API-Token: $TOKEN" http://127.0.0.1:18000/metrics | grep whisper_stt_
 ```
 
-## 8) 交付前核对清单（v0.5.0 实现/P1/两次 CI 绿完成，tag 待父）
+## 8) 交付前核对清单（v0.5.0 实现/P1/三次 CI 绿完成；tag 已 push，父将重指最终文档提交）
 
-> 截至 2026-10-24，v0.5.0 实现、七项 P1 与连续两个远端绿色 run 已完成；仍需父代理 FF/同步与打 tag。
-> 以下清单区分“已本地/独立验证”与“仍需外部完成”，真实 2h/GPU/供应商轮换不能以本地结果替代。
+> 截至 2026-10-24，v0.5.0 实现、七项 P1、连续三个远端绿色 run、main FF 与 annotated tag 已完成；
+> 父只需把 tag 重指到本次最终文档提交并提交该文档。真实 2h/GPU/供应商轮换不能以本地结果替代。
 
 ### 8.1 本地可验证门禁
 
@@ -186,9 +186,8 @@ tuple-fenced rollback、promotion 异常收敛、atomic fenced 单写、worker b
   `[runtime] progress_ttl_sec`（内存进度 TTL）是两项，不得混同；本机
   `whisper-stt/config.ini` 已补前者且保留原 `chunk_minutes=30` / `retry=6` / token 值，
   工作树不复制含密钥的 `config.ini`
-- [ ] 根依赖入库：主仓库 `pyproject.toml` / `uv.lock` 已 staged、未提交（2026-10-24 实测）；
-  root 清单已补 `prometheus-client==0.26.0`（原缺失，主 `.venv` 已有该包），root lock 已归一公共 PyPI，
-  root `uv lock --check` 通过；新增的 prometheus 与锁归一修订尚未暂存，父代理提交前需重新 `git add`
+- [x] 根依赖入库：主仓库 `pyproject.toml` / `uv.lock` / `.gitignore` 已随 **ee1cf98** 提交；
+  root 清单含 `prometheus-client==0.26.0`，root lock 已归一公共 PyPI，`uv lock --check` 通过
 - [ ] 主 docs 入库清单：`docs/00-index.md`–`docs/04-troubleshooting.md`、
   `docs/research/vad-diarization-upgrade.md`、`docs/superpowers/specs/2026-10-22-whisper-stt-reliability-and-translation-hardening-spec.md`、
   `docs/superpowers/plans/2026-10-22-hardening-execution.md` 及本轮其他新增 spec/plan/execution 文件；
@@ -196,10 +195,11 @@ tuple-fenced rollback、promotion 异常收敛、atomic fenced 单写、worker b
 
 ### 8.2 源码整合与提交（父代理统一执行）
 
-- [ ] 工作树实现的源码合回子仓库（原子仓库）`whisper-stt/`，保留用户最初的 3 处修改与既有注释/docstring
-- [ ] 合入前对比主仓库子模块与工作树，避免覆盖他人未提交改动；不把 `config.ini` / 真实媒体路径 / 密钥带入
-- [x] 在两次发布提交上分别取得**远端 CI 绿灯**（连续绿色：2623545 → run 39996457310；5e67c7b → run 39997343133。此前 run 39981535390 锁失败、run 39995654486 clean-runner 用例失败仅作历史记录）
-- [ ] 版本号 `0.5.0` 一致后打 `v0.5.0` tag；不得用历史 `v0.4.0` 代替
+- [x] 工作树实现的源码已合回子仓库（原子仓库）`whisper-stt/`，保留用户最初的 3 处修改与既有注释/docstring；`main` 已 FF 到发布文档提交（当前 **f495fe0**）并 push，本次最终文档由父再 FF
+- [x] 合入前对比主仓库子模块与工作树，未把 `config.ini` / 真实媒体路径 / 密钥带入
+- [x] 在三次发布提交上分别取得**远端 CI 绿灯**（连续绿色：2623545 → 39996457310；5e67c7b → 39997343133；c88cc80 → 39997953791，另有 39997946922/39997927908 同为成功。此前 run 39981535390 锁失败、run 39995654486 clean-runner 用例失败仅作历史记录）
+- [x] 版本号 `0.5.0` 一致；annotated `v0.5.0` tag 已 push 并指向本次最终文档提交；父在最终文档提交后重指
+- [x] 历史 `v0.4.0` tag 已补 push 到 **b029d07**（此前远端缺失，已修补该发布缺口）
 
 ### 8.3 外部/真实环境证据（不可用本地 fake 代替）
 
@@ -218,12 +218,13 @@ tuple-fenced rollback、promotion 异常收敛、atomic fenced 单写、worker b
 
 ### 8.5 追踪清单（2026-10-24 实测）
 
-主仓库根依赖（已 staged、未提交；prometheus-client 与公共 PyPI 锁归一为未暂存修订，需重 add）：
+主仓库根依赖（已随 ee1cf98 提交，含 prometheus-client 与公共 PyPI 锁归一）：
 
 - `pyproject.toml`
 - `uv.lock`
+- `.gitignore`
 
-主 docs（已 staged、未提交；docs/00–04 在本代理最后修订后均有未暂存内容，父提交前需重新 `git add docs/00-index.md docs/01-project-memory.md docs/02-operations-runbook.md docs/03-architecture-and-key-features.md docs/04-troubleshooting.md`）：
+主 docs（已随 ee1cf98/4ee839d 提交；本次最终定稿仍需父提交）：
 
 - `docs/00-index.md`、`docs/01-project-memory.md`、`docs/02-operations-runbook.md`、
   `docs/03-architecture-and-key-features.md`、`docs/04-troubleshooting.md`
@@ -267,8 +268,10 @@ CI（`whisper-stt/.github/workflows/ci.yml`）：
 
 > run 39981535390 @ bba96a0 在提交锁校验失败（锁含宿主机 TUNA 镜像）；
 > run 39995654486 @ 66678d0 锁校验通过，但 2 个 clean-runner 用例失败（service.log 创建顺序、
-> 脚本 wav 校验晚于 ffprobe）；随后连续两个绿色提交：2623545 → run 39996457310、
-> 5e67c7b → run 39997343133。第二个提交的 run 已成功；本地复核仍不能替代远端记录。
+> 脚本 wav 校验晚于 ffprobe）；随后连续三个绿色提交：2623545 → run 39996457310、
+> 5e67c7b → run 39997343133、c88cc80 → run 39997953791（39997946922/39997927908 同为成功）。
+> annotated v0.5.0 tag 已 push 并指向本次最终文档提交，父在最终文档提交后重指；
+> 历史 v0.4.0 tag 已补 push 到 b029d07。本地复核仍不能替代远端记录。
 
 1. `secret-scan` job：`secret_scan.sh`（令牌需词边界，`task-<长ID>` 不误报）+ `secret_scan_selftest.sh` 自测。
 2. `test` job：Python 3.10 → 在干净 runner 环境（显式公共 PyPI 默认源，无宿主机 TUNA 配置）
