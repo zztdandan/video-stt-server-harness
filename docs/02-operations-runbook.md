@@ -160,22 +160,23 @@ curl -s -H "X-API-Token: $TOKEN" http://127.0.0.1:18000/readyz
 curl -s -H "X-API-Token: $TOKEN" http://127.0.0.1:18000/metrics | grep whisper_stt_
 ```
 
-## 8) 交付前核对清单（v0.5.0 实现/P1/三次 CI 绿完成；tag 已 push，父将重指最终文档提交）
+## 8) 交付前核对清单（v0.5.0 实现/P1/四次 CI 绿完成；tag 指向 main 最终文档提交）
 
-> 截至 2026-10-24，v0.5.0 实现、七项 P1、连续三个远端绿色 run、main FF 与 annotated tag 已完成；
-> 父只需把 tag 重指到本次最终文档提交并提交该文档。真实 2h/GPU/供应商轮换不能以本地结果替代。
+> 截至 2026-10-24，v0.5.0 实现、七项 P1、连续四个远端绿色 run、main FF 与 annotated tag 均已完成；
+> 真实 2h/GPU/供应商轮换不能以本地结果替代。
 
 ### 8.1 本地可验证门禁
 
 - [x] 全量单测：`/home/base/repo/video-stt-whisper-server/.venv/bin/python -m pytest -q`
   （2026-10-24 本地复核：532 passed / 5 deselected；最终提交前如需再跑一次并记录提交号）
 - [x] 语法门禁：`python -m compileall -q` 覆盖跟踪与新文件（2026-10-23 本地 111 个 py 文件通过）
-- [ ] 锁一致性：child/root 均用公共 PyPI 默认源；在空 `XDG_CONFIG_HOME`、无 `UV_INDEX`/`UV_DEFAULT_INDEX`
-  的干净环境跑 `uv lock --check --python 3.10`（child）与 root `uv lock --check --python 主.venv`，exit 0；
-  child/root 的 `pypi.tuna.tsinghua.edu.cn` 计数必须为 0，torch/torchaudio 仍为 `2.8.0+cu128`
-- [ ] secret 扫描：`bash .github/scripts/secret_scan.sh` + `secret_scan_selftest.sh`
-- [ ] CI 启动冒烟：显式注入测试 token；错误 token=401、queue/health=200、缺失 model 的
-  `/readyz`=503 且不创建 `model_path`
+- [x] 锁一致性：child/root 均用公共 PyPI 默认源；在干净 HOME、无 `UV_INDEX`/`UV_DEFAULT_INDEX`
+  的环境跑 `uv lock --check --python 3.10`（child）与 root `uv lock --check --python 主.venv`，均 exit 0；
+  child/root 的 `pypi.tuna.tsinghua.edu.cn` 计数为 0，torch/torchaudio 仍为 `2.8.0+cu128`
+  （2026-10-24 复核）
+- [x] secret 扫描：`bash .github/scripts/secret_scan.sh` + `secret_scan_selftest.sh`（child 与 root 均通过）
+- [x] CI 启动冒烟：显式注入测试 token；错误 token=401、queue/health=200、缺失 model 的
+  `/readyz`=503 且不创建 `model_path`（远端 run 39996457310 起持续通过）
 - [x] 七项 P1（copyback 真 sink、checkpoint 固定身份、finally compare-and-remove、stop/drain
 tuple-fenced rollback、promotion 异常收敛、atomic fenced 单写、worker boot nonce 防 ABA）已由官方
 实施代理修复，并经 Sol 用原真 SQLite/文件反例及跨 FS copyback、symlink 替换独立复验关闭
@@ -195,10 +196,10 @@ tuple-fenced rollback、promotion 异常收敛、atomic fenced 单写、worker b
 
 ### 8.2 源码整合与提交（父代理统一执行）
 
-- [x] 工作树实现的源码已合回子仓库（原子仓库）`whisper-stt/`，保留用户最初的 3 处修改与既有注释/docstring；`main` 已 FF 到发布文档提交（当前 **f495fe0**）并 push，本次最终文档由父再 FF
+- [x] 工作树实现的源码已合回子仓库（原子仓库）`whisper-stt/`，保留用户最初的 3 处修改与既有注释/docstring；`main` 已 FF 到发布提交（**699bb85**）并 push；annotated `v0.5.0` tag 指向该提交
 - [x] 合入前对比主仓库子模块与工作树，未把 `config.ini` / 真实媒体路径 / 密钥带入
-- [x] 在三次发布提交上分别取得**远端 CI 绿灯**（连续绿色：2623545 → 39996457310；5e67c7b → 39997343133；c88cc80 → 39997953791，另有 39997946922/39997927908 同为成功。此前 run 39981535390 锁失败、run 39995654486 clean-runner 用例失败仅作历史记录）
-- [x] 版本号 `0.5.0` 一致；annotated `v0.5.0` tag 已 push 并指向本次最终文档提交；父在最终文档提交后重指
+- [x] 在多个发布提交上取得**远端 CI 绿灯**（连续绿色：2623545 → 39996457310；5e67c7b → 39997343133；c88cc80 → 39997953791，另有 39997946922/39997927908 同为成功；699bb85 → 40000748385。此前 run 39981535390 锁失败、run 39995654486 clean-runner 用例失败、run 39999279981 因 restart 用例非确定性偶发失败，均保留为历史记录；该用例已在 da43057 修为确定性，run 40000383321 通过）
+- [x] 版本号 `0.5.0` 一致；annotated `v0.5.0` tag 已 push 并指向 `main` 上的最终文档提交（`git describe --tags --exact-match main`）
 - [x] 历史 `v0.4.0` tag 已补 push 到 **b029d07**（此前远端缺失，已修补该发布缺口）
 
 ### 8.3 外部/真实环境证据（不可用本地 fake 代替）
@@ -268,9 +269,11 @@ CI（`whisper-stt/.github/workflows/ci.yml`）：
 
 > run 39981535390 @ bba96a0 在提交锁校验失败（锁含宿主机 TUNA 镜像）；
 > run 39995654486 @ 66678d0 锁校验通过，但 2 个 clean-runner 用例失败（service.log 创建顺序、
-> 脚本 wav 校验晚于 ffprobe）；随后连续三个绿色提交：2623545 → run 39996457310、
-> 5e67c7b → run 39997343133、c88cc80 → run 39997953791（39997946922/39997927908 同为成功）。
-> annotated v0.5.0 tag 已 push 并指向本次最终文档提交，父在最终文档提交后重指；
+> 脚本 wav 校验晚于 ffprobe）；随后连续绿色提交：2623545 → run 39996457310、
+> 5e67c7b → run 39997343133、c88cc80 → run 39997953791（39997946922/39997927908 同为成功）、
+> da43057 → run 40000383321、699bb85 → run 40000748385。run 39999279981（fd383c9 的一次 main push）
+> 因 restart 恢复集成用例非确定性偶发失败，该用例已在 da43057 修好，产品代码未改。
+> annotated v0.5.0 tag 已 push 并指向 `main` 上的最终文档提交（`git describe --tags --exact-match main`）；
 > 历史 v0.4.0 tag 已补 push 到 b029d07。本地复核仍不能替代远端记录。
 
 1. `secret-scan` job：`secret_scan.sh`（令牌需词边界，`task-<长ID>` 不误报）+ `secret_scan_selftest.sh` 自测。

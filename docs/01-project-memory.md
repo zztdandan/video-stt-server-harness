@@ -77,6 +77,6 @@ artifacts/<job_id>/
 ## 环境与工具链
 
 - Python 3.10，唯一共享环境 `/home/base/repo/video-stt-whisper-server/.venv`。依赖清单与锁文件：主仓库 `pyproject.toml` / `uv.lock`，子仓库 `pyproject.toml` / `uv.lock`（版本 0.5.0）。2026-10-24 已把 child/root 锁的普通包源归一为公共 PyPI（`pypi.org/simple` / `files.pythonhosted.org`），torch/torchaudio 保持 explicit cu128，版本/哈希/依赖图等价。
-- CI：`whisper-stt/.github/workflows/ci.yml`，CPU-only（Python 3.10 + `uv sync --group dev`，不装 gpu 组），默认跳过 manual / e2e，含 secret 扫描与语法门禁。run 39981535390 @ bba96a0 锁校验失败（宿主机 TUNA 镜像）；run 39995654486 @ 66678d0 锁校验通过但 2 个 clean-runner 用例失败；随后连续三个绿色提交：2623545 → 39996457310、5e67c7b → 39997343133、c88cc80 → 39997953791（39997946922/39997927908 同为 c88cc80 成功）。annotated v0.5.0 tag 已 push 并指向本次最终文档提交，父在最终文档提交后重指；历史 v0.4.0 tag 已补 push 到 b029d07。
+- CI：`whisper-stt/.github/workflows/ci.yml`，CPU-only（Python 3.10 + `uv sync --group dev`，不装 gpu 组），默认跳过 manual / e2e，含 secret 扫描与语法门禁。run 39981535390 @ bba96a0 锁校验失败（宿主机 TUNA 镜像）；run 39995654486 @ 66678d0 锁校验通过但 2 个 clean-runner 用例失败；随后连续四个绿色提交：2623545 → 39996457310、5e67c7b → 39997343133、c88cc80 → 39997953791（39997946922/39997927908 同为 c88cc80 成功）、da43057 → 40000383321（restart 恢复集成用例确定性修复；该用例曾在 fd383c9 的一次 main push 偶发失败，同提交另有成功 run）。annotated v0.5.0 tag 已 push 并指向 `main` 上的最终文档提交；历史 v0.4.0 tag 已补 push 到 b029d07。
 - 真实媒体用例：`whisper-stt/tests/manual/test_real_media.py`，需 `WHISPER_STT_REAL_MEDIA=1` 才执行。
 - 密钥治理：`docs/hf-token.md` 已删除，HF token 统一用 `HF_TOKEN` 环境变量；主仓库 `.gitignore` 已加入 `docs/hf-token.md`、`docs/*token*`、`*.token`、`token.env`、`.env`。
