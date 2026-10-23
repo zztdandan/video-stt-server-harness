@@ -1,7 +1,7 @@
 # Whisper STT 可靠性与翻译链路加固 SPEC
 
 - **日期**：2026-10-22
-- **状态**：实施中（执行证据见 docs/superpowers/plans/2026-10-22-hardening-execution.md；完整交付验收前不标完成）
+- **状态**：已实施并通过独立验收（2026-10-24；子仓库 main/tag `v0.5.0` = 699bb85，四次连续远端 CI 绿；验收报告 docs/superpowers/executions/2026-10-24-sol-final-acceptance-v0.5.0.md，执行记录 docs/superpowers/plans/2026-10-22-hardening-execution.md。真实 2h 媒体、GPU 显存、供应商 token 轮换为发布后跟踪项，未验证）
 - **适用仓库**：主仓库 `/home/base/repo/video-stt-whisper-server`；实现代码在子仓库 `whisper-stt/`
 - **文档位置约束**：本 SPEC 及后续执行记录只放主仓库 `docs/`，不放进子仓库
 - **实施环境约束**：所有 Python 执行只用主仓库 `.venv`；子仓库和 worktree 不得创建独立 venv；写代码时保留全部现有注释与 docstring
