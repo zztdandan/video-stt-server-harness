@@ -8,7 +8,7 @@
 
 ## 1. 快照、提交与远端身份
 
-首轮完整测试与原 P1 实验实际运行时的快照（最终 699bb85 上又独立执行完整 pytest，结果见第 9 节）：
+首轮完整测试与原 P1 实验实际运行时的快照（最终 699bb85 上又独立执行完整 pytest，结果见第 10 节）：
 
 | 对象 | 独立实测身份 |
 |---|---|
@@ -41,11 +41,11 @@ git diff --name-status fd383c93e45f90cb474a0704df283d1b627342cb..HEAD
 git diff --exit-code c88cc80564174903c111489b54e8061771ce96c4..HEAD -- whisper_stt whisper_stt_service .github pyproject.toml uv.lock config.example.ini scripts .gitignore
 ~~~
 
-均 exit 0；cat-file 返回 tag；API ref/object/peeled 与最终表一致。c88cc80→fd383c9 当时仅 README 中英文档差异；fd383c9→699bb85 最终差异为中英 README 加 tests/integration/test_runtime_fake_executors.py 单个测试文件，已逐段读补丁。所有生产实现、脚本、CI、配置、依赖/锁文件相对 c88cc80 差异为空，exit 0。此前中间发布为 f495fe0 / tag 4dc6a335a4f3f93a7fe58435450579a4df0670b0、fd383c9 / tag dbfe963b265cace4c08763af8b14a174b14045cb；最终 tag 因官方确定性测试修复 da43057397c27ab9905067f31792a940192fbed7 和文档对齐 699bb85 再重指。最终全量测试确实在 699bb85 独立执行，不仅沿用旧代码树推断。主仓库最终复核 7b9493bd15db61a02e8822fb500621d606b61bc5，gitlink 精确指向 699bb857ecbad65537bd7247700865bf8eebc7b4。
+均 exit 0；cat-file 返回 tag；API ref/object/peeled 与最终表一致。c88cc80→fd383c9 当时仅 README 中英文档差异；fd383c9→699bb85 最终差异为中英 README 加 tests/integration/test_runtime_fake_executors.py 单个测试文件，已逐段读补丁。所有生产实现、脚本、CI、配置、依赖/锁文件相对 c88cc80 差异为空，exit 0。此前中间发布为 f495fe0 / tag 4dc6a335a4f3f93a7fe58435450579a4df0670b0、fd383c9 / tag dbfe963b265cace4c08763af8b14a174b14045cb；最终 tag 因官方确定性测试修复 da43057397c27ab9905067f31792a940192fbed7 和文档对齐 699bb85 再重指。最终全量测试确实在 699bb85 独立执行，不仅沿用旧代码树推断。主仓库本次冻结复验起点 7b9493bd15db61a02e8822fb500621d606b61bc5，gitlink 精确指向 699bb857ecbad65537bd7247700865bf8eebc7b4。
 
 ## 2. 独立执行的测试与卫生门禁
 
-唯一 Python：/home/base/repo/video-stt-whisper-server/.venv/bin/python，版本 3.10.19。以下命令均实际执行，不仅引用父代理结果。
+唯一 Python：[主仓库解释器](</home/base/repo/video-stt-whisper-server/.venv/bin/python>)，版本 3.10.19。以下命令均实际执行，不仅引用父代理结果。
 
 ~~~bash
 PYTHONDONTWRITEBYTECODE=1 /home/base/repo/video-stt-whisper-server/.venv/bin/python -m pytest -p no:cacheprovider -q
@@ -299,4 +299,56 @@ print('EXPECTED FAILURE CONFIRMED: unmodified production recovery is zero after 
 PY
 ~~~
 
-实际 stdout 含 SCHEDULE PROOF；内部 pytest 精确 **1 failed in 2.60s**，仍是第 774 行 recovered=0>=1，非其他异常；外层验证该预期失败后 exit 0。证明旧测试允许“旧 claimed 在重启前已完成”独自导致 CI 失败，不能误报产品 startup recovery 漏计，也不能把此次负例记作通过用例。官方仍须修正同步并重新过门禁。
+实际 stdout 含 SCHEDULE PROOF；内部 pytest 精确 **1 failed in 2.60s**，仍是第 774 行 recovered=0>=1，非其他异常；外层验证该预期失败后 exit 0。证明旧测试允许“旧 claimed 在重启前已完成”独自导致 CI 失败，不能误报产品 startup recovery 漏计，也不能把此次负例记作通过用例。当时官方仍须修正同步并重新过门禁；现修复与全部重新验收已完成，见第 10 节。
+
+## 10. 冻结最终复验：本次发布阻塞项已关闭
+
+### 官方修复审查
+
+实际逐段读取 fd383c9→699bb85 补丁，仅中英 README 与 [fake executor 集成测试](</home/base/repo/video-stt-whisper-server/whisper-stt/tests/integration/test_runtime_fake_executors.py#L752-L813>)变化，生产实现未改。da43057 修复：新增线程安全 has_started，等待旧执行器确已取得 hang Event；仅在该“崩溃进程”测试中停用旧 runtime 的 reaper（避免 2s 租约先被仍活着的旧进程回收，新 runtime 的 reaper 正常）；先 restarted.start 并保留 **recovered >= 1、attempt > claimed_attempt** 断言，确认恢复后才 pop / hang.set；最后 job succeeded 与 attempt >= old+1 仍保留。没有 ImportError skip、没有放宽异常/断言。原失败原因已闭环，不是把失败 run 重跑为绿来隐藏历史。
+
+### 699bb85 独立五轮与全量
+
+下列两组实际各自作为后台作业并行运行，均已收集完成：
+
+~~~bash
+set -e
+for round in 1 2 3 4 5; do
+  echo "INDEPENDENT_RESTART_ROUND=$round"
+  PYTHONDONTWRITEBYTECODE=1 /home/base/repo/video-stt-whisper-server/.venv/bin/python -m pytest -p no:cacheprovider -q tests/integration/test_runtime_fake_executors.py::test_restart_recovery_counts_attempt
+done
+~~~
+
+~~~bash
+PYTHONDONTWRITEBYTECODE=1 /home/base/repo/video-stt-whisper-server/.venv/bin/python -m pytest -p no:cacheprovider -q
+~~~
+
+本代理五轮实际每轮 **1 passed**，依次 **4.86s、4.64s、4.83s、5.65s、4.37s**；整组 exit 0（bash-4b99e11770874bcd）。最终全量实际 **532 passed, 5 deselected in 35.55s，exit 0**（bash-ba12b8baaea94bb1）。结果来自本轮独立执行，不引用父的五次/全量计数。完整套件覆盖当前所有集成测试，未启用付费 LLM/manual。
+
+### 最终远端身份与 CI
+
+第 1 节 ls-remote / gh API / tag object / diff 命令均已针对冻结最终快照实际执行。main=本地 HEAD=tag peeled=699bb857ecbad65537bd7247700865bf8eebc7b4，annotated tag object=901214f5767d2f79d113a650247c9b3552b63f9f，unsigned。root=7b9493bd15db61a02e8822fb500621d606b61bc5，gitlink 同699bb85。
+
+| run | SHA / 触发 | 本代理独立查询 |
+|---|---|---|
+| [40000383321](https://github.com/japan-media-skill-hub/video-stt-translate-server/actions/runs/40000383321) | da43057397c27ab9905067f31792a940192fbed7 / 修复 feature | completed success，jobs/steps 全 success |
+| [40000748385](https://github.com/japan-media-skill-hub/video-stt-translate-server/actions/runs/40000748385) | 699bb85 / feature | completed success，jobs/steps 全 success |
+| [40001055315](https://github.com/japan-media-skill-hub/video-stt-translate-server/actions/runs/40001055315) | 699bb85 / main | completed success；secret scan 6 成功步骤、pytest job 15 成功步骤，non_success_steps=[] |
+| [40001061326](https://github.com/japan-media-skill-hub/video-stt-translate-server/actions/runs/40001061326) | 699bb85 / v0.5.0 | completed success；secret scan 6 成功步骤、pytest job 15 成功步骤，non_success_steps=[] |
+
+精确 jobs 查询（均 exit 0）：
+
+~~~bash
+for r in 40000383321 40000748385; do
+  gh api repos/japan-media-skill-hub/video-stt-translate-server/actions/runs/$r/jobs --jq '.jobs[] | {name,conclusion,steps:[.steps[]|{name,conclusion}]}'
+done
+for r in 40001055315 40001061326; do
+  gh api repos/japan-media-skill-hub/video-stt-translate-server/actions/runs/$r/jobs --jq '.jobs[] | {name,conclusion,non_success_steps:[.steps[]|select(.conclusion!="success")|{name,conclusion}],successful_steps:([.steps[]|select(.conclusion=="success")]|length)}'
+done
+~~~
+
+最终 CI 含 committed-lock、CPU 安装、subset + full pytest、语法检查、启动冒烟，全部成功。本次有确定性同步修复、新提交独立五轮/全量与最终 main/tag CI 全绿，不以“同 SHA 另一 run 成功”掩盖原 39999279981 失败。
+
+最终子仓库 status 空。最后主仓库 status 除四项允许用户工作外，仅本报告定稿修订待父统一收录；此前父更新的[执行记录](</home/base/repo/video-stt-whisper-server/docs/superpowers/plans/2026-10-22-hardening-execution.md>)已不再出现在修改列表。这是交付报告收尾，不是实现树脏改动；本代理没有 git 写操作。最终再次执行子/root secret scan 与 scanner 自测均 exit 0；报告亦单独扫描通过。所有本代理相关后台作业已收集。
+
+**最终结论：验收通过。** 真实 2h、NVML/GPU、供应商端 token 轮换仍按第 8 节列为明确未验证/未完成的发布后跟踪项，短片与 fake 测试不能替代。
