@@ -8,7 +8,12 @@
 - 远端 CI 事实：39981535390 @ bba96a0 failure（lock TUNA）、39995654486 @ 66678d0 failure（clean-runner 2 用例）、39996457310 @ 2623545 success、39997343133 @ 5e67c7b success；c88cc80 新 run 39997953791（父已发起并收集）。
 - 主仓库 commit ee1cf98：docs/00-04、根 pyproject.toml/uv.lock（补 prometheus-client、公共 PyPI 归一）、.gitignore（含 .codex/、secret 规则）、子仓库 gitlink；AGENTS.md 与 scripts/run_shutdown_round.sh 为用户既有改动未纳入。
 - 本地验证：全量 pytest 532 passed/5 deselected；集成后（whisper-stt main）targeted 49 passed；secret scanner + selftest 通过；child/root `uv lock --check` 在干净 HOME（无镜像 env）exit 0；CPU 源覆盖 dry-run 解析 torch==2.8.0+cpu 且 0 个 nvidia-*。
-- 最终独立验收代理 `1783ee97-c8e0-4750-b564-65e5dc4690d8`（GPT-6.1-Sol high）正在对交付快照做 A–I 最终验收，报告将落 docs/superpowers/executions/2026-10-24-sol-final-acceptance-v0.5.0.md。
+- 最终独立验收代理 `1783ee97-c8e0-4750-b564-65e5dc4690d8`（GPT-6.1-Sol high）对交付快照做 A–I 最终验收，报告落 docs/superpowers/executions/2026-10-24-sol-final-acceptance-v0.5.0.md。
+- 发布收尾事实（2026-10-24 终稿）：子仓库 main=699bb857ecbad65537bd7247700865bf8eebc7b4（origin/main 同步）；annotated v0.5.0 tag object=901214f5767d2f79d113a650247c9b3552b63f9f peeled=699bb85；历史 v0.4.0 已补 push @b029d07。
+- CI 证据（全部 success 除非注明）：39996457310 @2623545、39997343133 @5e67c7b、39997953791/39997946922/39997927908 @c88cc80、39998665037/39998653629 @f495fe0、39998978213/39999284932 @fd383c9、40000383321 @da43057、40000748385 @699bb85、40001055315 @699bb85(main)、40001061326 @699bb85(tag)。历史失败保留：39981535390（lock TUNA）、39995654486（clean-runner 2 用例）、39999279981（restart 用例竞态；同提交另有成功 run，已在 da43057 修为确定性，产品代码未改）。
+- 缺陷修复补记：restart 恢复集成用例改为“先等执行器真正进入受控 hang（has_started）→ 先做 recovery 断言 → 再放行旧调用”，并停用旧 runtime reaper 模拟崩溃进程；5 次连跑 + 完整 integration 均通过，Sol 独立复跑亦通过。
+- 根仓库最新 7b9493b（docs 终稿 + gitlink），序列 ee1cf98/4ee839d/eacc4f6/f7e607d/7b9493b；用户既有 AGENTS.md 与 scripts/run_shutdown_round.sh 未纳入提交。
+- 剩余仅外部不可验证项与后续人工动作：真实 2h 媒体、GPU 显存峰值（NVML 被 OS 阻断）、供应商侧 HF/API token 轮换。这些不构成本次实现失败的替代证据，也不能写成已通过。
 - 外部不可验证项（如实记录，非本次失败）：真实 2h 媒体四条 /srv/media 路径不存在；NVML GPU access blocked by OS，无显存峰值；供应商侧 HF/API token 轮换需人工执行。
 
 ## 历史续作状态（2026-10-23 23:16 官方模型切换）
