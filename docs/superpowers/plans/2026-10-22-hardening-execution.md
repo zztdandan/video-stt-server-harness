@@ -1,6 +1,18 @@
 # 可靠性与翻译链路加固执行记录
 
-## 最新续作状态（2026-10-24 发布完成，优先于下方历史）
+## 最新续作状态（2026-11-01 真实媒体复验，优先于下方历史）
+
+- 网络存储恢复：`/mnt/JELLYFIN` 改为 **UNC 子路径** `//192.168.3.138/Raid16T/JELLYFIN` + `zztdan` 凭据（`/etc/cifs-jellyfin.cred` 600）+ systemd automount；`prefixpath=JELLYFIN` 在 cifs-utils 6.14/6.18 内核上不生效（原来 `/srv/media/jellyfin` 一直显示共享根即因此）。
+- 真实 2h 单片：`FNS-270-U`（7272s）跑通 extract→stt→translate，copy_back 落 SMB。
+- **真实 3 部完整影片批量**（`/srv/media/jellyfin/JELLYFIN/atmp`）：MIDA-853（2h02m，402 段）、ADN-783-UC（1h58m，136 段）、CJOD-539-U（1h54m，3 段）全部 succeeded(attempt 0)，copy_back sha256 与本地产物一致，检查点 `source_sha256` 与 ja.srt 匹配。报告：`docs/superpowers/executions/2026-11-01-real-movie-batch-acceptance.md`。
+- 真实测试暴露并修复 2 个缺陷（均已推送且远端 CI 绿）：
+  - `384676e`：`[translation] timeout=240`（HTTP）被当成任务级 `timeout_sec` 写入 tasks，覆盖 `[timeouts] translate_timeout_sec=7200`，长片翻译 240s 被判死；已解耦（任务 deadline 仅来自 `[timeouts]`/显式覆盖，HTTP 超时读 `timeout`），并修正 `resolve_translate_settings` 读错键名。CI 41242275143。
+  - `0bd6d3d`：模型回复“JSON + 尾部内容”导致 `Extra data` 反复重试失败；改为 `raw_decode` 逐候选提取、忽略尾部，无 JSON 时抛可重试的 `JsonExtractionError`。CI 41244633806；全量 546 passed。
+- 输入完整性教训：首轮误用未下载完的 MIDA-853（`.aria2` 存在且持续增长），extract 只读到已下载数据；下载完成后重跑达到 402 段全时长覆盖。**验收前必须先确认素材完整**。
+- 第 4 部 `JUR-897-U`（2h23m）：translate 10/11 批成功，单批在解析加固后仍 parse 失败（疑似上游回复不含可解析 JSON），任务按策略失败而非产出错误字幕；候选改进为 parse 重试耗尽后按 C.5 回退保留日文原文。
+- 服务已停止，运行期临时 `config.ini`/`token.txt` 已删除；`/srv/media/jellyfin` 保持原样（共享根、guest）。
+
+## 2026-10-24 发布完成（历史，保留）
 
 - 用户授权后实施代理改为官方 DeepSeek V4.1 Flash（deepseek-official/deepseek-flash）；剩余七项 P1 全部修复并由 GPT-6.1-Sol 用原真 SQLite/文件反例独立复验关闭。
 - 后续 clean-runner CI 修复：1) uv.lock 从隐式 TUNA 默认源归一为显式公共 PyPI（pyproject 增加 `[[tool.uv.index]] name="pypi" default=true`；root 同）；2) service.log 在 configure_logging 时立即创建（不再依赖首条日志）；3) 脚本模式 wav 契约校验先于 ffprobe，且 `_probe_duration` 对缺失 ffprobe 返回 None 仅降级进度。
