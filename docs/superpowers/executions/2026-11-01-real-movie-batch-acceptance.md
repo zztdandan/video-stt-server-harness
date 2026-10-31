@@ -67,3 +67,34 @@
   `/srv/media/jellyfin` 保持原样（共享根、guest）。
 - 运行期临时配置与 token 位于 `whisper-stt/tmp/e2e-batch3/`（gitignored），验收结束后删除。
 - 未验证项（外部限制）：GPU 显存峰值（NVML 被 OS 阻断）、供应商侧 HF/API token 轮换（人工动作）。
+
+## 6. 追加修复（真实测试第二轮反馈）
+
+### 6.1 翻译错位：模型拆行导致整段后移（commit `8e1255a`）
+
+- 现象：ADN-783-UC 从 id 84 起 `zh[i]` 实际是 `ja[i-1]` 的译文，最后一条被挤掉。
+- 根因：模型偶发把一条日文拆成两条中文并丢掉最后一条，但返回的 id 仍连续（84..107 全在），
+  旧实现按「id 集合相等」校验，无法发现“按位置错位”。同 payload 重跑可复现/不可复现交替，属模型偶发行为。
+- 修复：输出契约改为**以 id 为 key 的 JSON 对象** `{"<id>": "..."}`，要求条数一致、禁止合并/拆分/新增/丢弃/改号；
+  解析兼容旧数组格式；key 集合严格校验（缺失→C.5 只补缺失；多余→unexpected 报错）；
+  脚本模式 prompt 与解析均委托服务端实现，物理上只保留一份契约。
+- 重跑验证：ADN-783-UC 134 段逐条对齐（84–107 已核对），zh 与 ja 一一对应。
+
+### 6.2 字幕超长段：ASR 时间戳预测 artifact（commit `8e1255a`）
+
+- 现象：ja.srt 出现 886.7s、489.9s、2242.3s 等超长段（ADN 10 段 >30s、MIDA 39 段）。
+- 归因：文本来自真实识别，**超长的是 end 时间戳**；以同参数直接重跑 faster-whisper 可复现超长段
+  （切片探测出现 24s > 18s 上限的段），说明来自模型段级时间预测，不是本地后处理。
+- 兜底：写字幕前统一清洗——单调不重叠、单段 ≤ `max_segment_sec`（默认 30s）、零长度补 0.3s、
+  lookahead 用下一条 start 收紧；文本与条数不变，并输出 WARNING 汇总。
+- 重跑验证：最大段长 30.0s、>30s 段为 0，日志
+  `stt timestamps sanitized: task_id=… total=134 adjusted=10 max_original=2242.3s max_output=30.0s`。
+
+### 6.3 重跑结果（ADN-783-UC）
+
+```text
+extract  succeeded 95s
+stt      succeeded 66s
+translate succeeded 239s
+job succeeded（attempt 0）；copy_back 已更新（ja 8970B / zh 7675B，07:08）
+```
