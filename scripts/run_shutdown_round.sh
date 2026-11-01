@@ -31,7 +31,7 @@ pushd "$PROJECT_DIR" >/dev/null
 WHISPER_STT_CONFIG="$CONFIG_PATH" \
 "$PYTHON_BIN" tests/e2e/run_e2e_shutdown_round.py \
   --round "$ROUND" \
-  --base-url "http://127.0.0.1:8000" \
+  --base-url "http://127.0.0.1:18000" \
   --api-token "$API_TOKEN" \
   --video-paths "tests/e2e/video_paths.txt" \
   --shutdown-after-sec 10 \

@@ -10,7 +10,13 @@
 
 ## 规范与计划
 
+- **⭐ `superpowers/specs/2026-11-01-stt-qwen-execution-spec.md`：stt_qwen 正式执行 SPEC（本次执行的唯一目标文档）**——VAD 定点切片参数（本轮 30±20/fallback+40→上界70s/batch10；目标 50±20/+30→上界80s/batch13，全部可配）、12 处代码改动、执行器契约、翻译链路两条前置修复、3 部未翻译影片标准三步验收口径。**§12 执行状态：1–7 全部完成，验收通过**
+- **⭐ `superpowers/executions/2026-11-01-stt-qwen-acceptance.md`：stt_qwen 真实媒体验收记录（SPEC §9.3/§13）**——种子 20261101 抽 3 部未翻译片（SAN-484-U / ABF-394-U / CAWB-069-U）走标准三步全部 succeeded；逐项判据表、CPU 独立复算片边界、**验收暴露并修复的 2 个执行器缺陷**（显存门槛未区分冷启动/命中缓存、字级时间戳逃逸未夹取）、翻译链路容量取证（`reasoning.enabled=false` 关不掉思考，批次应降到 20~25）、未验证项
 - `superpowers/specs/2026-10-22-whisper-stt-reliability-and-translation-hardening-spec.md`：可靠性与翻译链路加固 SPEC（含 2026-10-22 用户决策、批次拆分、验收标准）
+- `superpowers/specs/2026-11-01-qwen3-asr-local-stage-design.md`：stt_qwen 早期设计稿——**参数部分已被上文执行 SPEC 取代**（`chunk_seconds=30`/`min_free_vram_gb=6.0` 等经实测修订），仅保留背景与架构取舍
+- `superpowers/plans/2026-11-01-stt-qwen-vad-boundary-handoff.md`：FireRedVAD 定点切片交接说明——其 D2 的"固定网格 + 搜索窗"写法经实测有缺陷（切出 >180s 片），执行以 SPEC 的 prev 锚定为准
+- `superpowers/executions/2026-11-01-qwen3-asr-local-pilot.md`：pilot 实测记录（同源对照 whisper-large-v3-turbo、切片粒度对速度与质量的影响、GPU 争用与落点核查）
+- `superpowers/executions/2026-11-01-stt-qwen-vad-cut-eval.md`：定点切方案评估与**全部实测证据**（§1–§12：纯无语音片可跳过性、切点精度对照、锚定缺陷取证、坍缩根因三连探针、30s/50s 全长跑、翻译与发布）
 
 ## 版本与环境速记（v0.5.0 实现/P1/四次 CI 绿完成；annotated tag 指向 main 最终文档提交）
 

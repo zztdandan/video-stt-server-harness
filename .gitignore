@@ -6,6 +6,8 @@
 .venv/
 models/
 config.ini
+# 运行时产物（含调试归档等）：**完整排除**，不进版本库。
+tmp/
 
 # Worktrees for child repo development only
 .worktrees/
