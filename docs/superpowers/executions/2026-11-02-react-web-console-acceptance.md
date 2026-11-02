@@ -188,3 +188,40 @@ ACC_SECURITY_RUN=1 python -m pytest tests/acceptance_security -q   -> 93 passed
   并能校验 copy_back 的 hash；这只是测试实例配置，不改生产 `config.ini`。
 - 若希望**生产**网页提交也能通过，需要把 `[translation] copy_back` 指到可写目录，
   并按需把该目录加入 `[security] allowed_copy_back_roots`（属于部署决策，待用户确认）。
+
+### A.2 产物判据逻辑的独立冒烟（不跑模型）
+
+用已 seed 的 succeeded 作业（12 条 JA/ZH 字幕）驱动 `scripts/e2e_real_run.py` 的判据代码：
+
+| 检查 | 结果 |
+|---|---|
+| 下载 `content` | 200，字节与文件一致 |
+| `sha256_match` | **True**（JA、ZH 各一次） |
+| `cues` 解析 | 12 条、`timeline_ok=True` |
+| JA/ZH index 对齐 | 12/12，`zh_missing_in_ja=0` |
+| 缺 copy_back 记录 | 如实标 `copy_back_unverified` |
+
+再用 stub 替换"提交/等待"网络动作（判据代码不 stub），`run_video` 成功路径返回
+`passed=True`、三阶段 succeeded、四项检查齐全——说明真实跑完后判定不会误判。
+
+### A.3 真实跑批命令（GPU 空闲时执行）
+
+```bash
+cd .worktrees/react-web-console
+# 1) 起真实实例：生产配置 + 真实 worker（会吃 GPU）+ 可写 copy_back
+PORT=18127 \
+WORK_DIR=$PWD/tmp/real-e2e \
+COPY_BACK_DIR=$PWD/tmp/real-e2e/copyback \
+WITH_TOKEN=1 E2E_TOKEN=<随机测试 token> \
+WORKERS=real bash scripts/web_server.sh
+
+# 2) 两部非 VR 影片（可替换）
+E2E_TOKEN=<同一个 token> python scripts/e2e_real_run.py \
+  --base-url http://127.0.0.1:18127 --preset whisper-ja-zh \
+  --video "/srv/media/jellyfin/JELLYFIN/JAV/N/奈/奈美_なみ 26歳 コーヒーショップ勤務/NTR-102 绝对会为这情况兴奋吧 难/NTR-102-U.mp4" \
+  --video "/srv/media/jellyfin/JELLYFIN/JAV/W/五/五日市芽依/MIAB-196 合宿轮奸：憧憬的女子经理/MIAB-196.mp4" \
+  --timeout-sec 21600 --out tmp/real-e2e/report.json
+```
+
+判据不通过时的处置：**不自动重试、不自动归档**；先看 `report.json` 的 `errors`/`checks`，
+按 SPEC 的"失败→日志→符合条件才重试"流程处理，并把结论追加到本文件。
