@@ -161,3 +161,30 @@ ACC_SECURITY_RUN=1 python -m pytest tests/acceptance_security -q   -> 93 passed
   1 个 PARTIAL（B9）、1 个交互缺陷（D1）与 1 条部署注记均已在实现侧修复并加回归用例。
 - **本轮不宣称"真实媒体已验收"**：该结论只能在 GPU 窗口空闲、用 2 部真实影片跑完整链路后给出。
 - 发布版本号、README Roadmap 的"完成"标记与 tag/push 仍待用户在真实媒体验收后确认。
+
+## 附录 A：真实端到端脚本的 CPU 冒烟（2026-11-03 03:1x）
+
+在 GPU 仍被长测占用期间，用 **0 worker** 实例对 `scripts/e2e_real_run.py` 做了完整链路冒烟
+（不加载模型、不推理，作业只会停在 `queued`）：
+
+| 场景 | 结果 |
+|---|---|
+| 预检 `POST /jobs/validate` | 通过（`valid=true`，8 项 checks 全 true/null） |
+| 提交 `POST /jobs` | `accepted=true`，拿到 job_id |
+| 轮询到终态 | 0 worker 下不会推进，`--timeout-sec 15` 到期后按设计报 `wait_terminal_failed`，**保留** `validate_ok/accepted/job_id` |
+| 重复提交同一路径 | `accepted=false, message=idempotent_returned`，脚本判为"未接受"并给 existing_job（符合预期，未自动重发） |
+| 归档后重提 | 归档成功 → 再次提交 accepted=true（路径占用已释放） |
+
+冒烟暴露并修掉的脚本缺陷：超时/异常时曾丢失已取得的证据（`validate_ok/accepted/job_id` 被新对象覆盖），已改为保留部分结果。
+
+### A.1 环境事实（影响真实验收配置，非代码缺陷）
+
+- 本机 `/srv/media/jellyfin` 是 **CIFS 只读挂载**（`ro,nosuid,nodev,vers=3.0`）；
+  实测 `touch` 返回 `Read-only file system`。
+- 生产 `config.ini`：`[security] allowed_copy_back_roots` 为空、`[translation] copy_back` 缺省
+  `__video_dir__` → 预检会（正确地）报 `copy_back_not_writable`，网页提交被拦。
+- 真实端到端将用 `scripts/web_server.sh` 的 `COPY_BACK_DIR=<可写目录>` 覆盖
+  `[translation] copy_back` 与 `[security] allowed_copy_back_roots`，从而让预检通过、
+  并能校验 copy_back 的 hash；这只是测试实例配置，不改生产 `config.ini`。
+- 若希望**生产**网页提交也能通过，需要把 `[translation] copy_back` 指到可写目录，
+  并按需把该目录加入 `[security] allowed_copy_back_roots`（属于部署决策，待用户确认）。
