@@ -232,3 +232,15 @@ E2E_TOKEN=<同一个 token> python scripts/e2e_real_run.py \
 
 判据不通过时的处置：**不自动重试、不自动归档**；先看 `report.json` 的 `errors`/`checks`，
 按 SPEC 的"失败→日志→符合条件才重试"流程处理，并把结论追加到本文件。
+
+### A.4 长跑可恢复：账本 + `--resume`
+
+真实跑批可能持续数小时，脚本已按"append-only 账本"实现续跑：
+
+- 每完成一部片，结果追加到 `<out>.jsonl`（一片一行，含 `passed`、job_id、checks）；
+- `--resume` 时读取账本，`(video, preset)` 已通过的组合**直接跳过**（不发起任何请求）；
+- 失败/未完成项会重新执行；账本损坏行被跳过，不中断跑批。
+
+冒烟验证：预写两条"已通过"账本后，用不可达 base-url 跑 `--resume`，两部片均被跳过、
+退出码 0、`summary.passed=2` —— 证明续跑不依赖网络。
+（冒烟同时暴露并修掉一个实现缺陷：`passed` 是 property 不在 `__dict__`，账本最初读不到已通过项。）
