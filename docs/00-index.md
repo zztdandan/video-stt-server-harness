@@ -13,6 +13,7 @@
 - **[React 字幕流水线工作台 SPEC（2026-11-01，可选 Token 鉴权）](<superpowers/specs/2026-11-01-react-web-console-spec.md>)：待评审、未实施。** 简单服务器目录/文件选择、三条固定流水线单选、监控/日志/字幕闭环；前后端共用 security 配置，开启时输入完整 Token、关闭时直入（无用户名/密码）；已有 API 复用、14 条新增路由、功能缺口与 M1–M3 验收标准。上传/运行中取消等仍为扩展待办。**2026-11-01 修订：删除 10,000 Job/30,000 Task 夹具与列表 p95 目标（本机无此规模场景），保留"不引入 N+1"的设计约束，降低为设计约束而非性能验收项。**
 - [React 工作台实施计划与并行开发契约](<superpowers/plans/2026-11-01-react-web-console-implementation-plan.md>)：模块所有权、`[web]` 配置段、三条预置、`/capabilities` 与 DTO 字段冻结、路由模块清单、波次分工与 M1 闸门。实现分支 `.worktrees/react-web-console`（`feat/react-web-console`）。
 - [React 工作台验收计划（种子与判据，验收前冻结）](<superpowers/executions/2026-11-02-react-web-console-acceptance-plan.md>)：验收人独立性约束、冻结环境/指纹、M1–M3 判据编号（B/S/F/L/A/H/M3）、明确"不算通过"的证据、未覆盖项与证据归档要求。
+- [React 工作台验收记录（独立三方向验收）](<superpowers/executions/2026-11-02-react-web-console-acceptance.md>)：A 后端契约（B1–B10/L/A/H）、B 前端浏览器（F1–F10/M2/M3 UI）、C 安全部署（S1–S11）三轮独立验收；发现 B7 进度身份 FAIL、B9 筛选 PARTIAL、D1 窄屏溢出、代理头部署注记，均已修复并加回归用例；**真实媒体端到端未执行**（GPU 长测占用），附录记录脚本冒烟与媒体根只读 CIFS 的配置事实。
 - [React 工作台美学与视觉设计规范](<superpowers/specs/2026-11-01-react-web-console-aesthetic-guidance.md>)：**由 GPT-6.1-Sol 子代理出具**。12 节：颜色/字体/空间 token、可直接粘贴的 antd 5 深浅两套 `ThemeConfig`、布局与 9 类核心组件状态矩阵、动效与响应式、可访问性、Do/Don't、落地清单；全部对比度按 WCAG 2.1 实算，无外链/CDN/字体引用；明确禁止假 0% 进度与加权总进度。
 
 - **⭐ `superpowers/specs/2026-11-01-stt-qwen-execution-spec.md`：stt_qwen 正式执行 SPEC（本次执行的唯一目标文档）**——VAD 定点切片参数（本轮 30±20/fallback+40→上界70s/batch10；目标 50±20/+30→上界80s/batch13，全部可配）、12 处代码改动、执行器契约、翻译链路两条前置修复、3 部未翻译影片标准三步验收口径。**§12 执行状态：1–7 全部完成，验收通过**
