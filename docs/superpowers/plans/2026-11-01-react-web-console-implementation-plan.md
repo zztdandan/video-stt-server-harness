@@ -225,4 +225,6 @@ def resolve_preset(preset_id, language, dag, job_config) -> Preset   # 冲突抛
 - **真实媒体端到端**（SPEC §11.3）：等用户通知 GPU 长测结束后，用 `/srv/media/jellyfin/JELLYFIN/JAV` 的
   2 部非 VR 影片按"选片 → 预检 → 提交 → 监控 → 字幕双栏 → 下载 → 回写"全流程验收；CPU 烟测不得替代。
 - **CI 实跑**：新增的 `web` job 只在本地验证过同样的命令，尚未在 GitHub Actions 实际运行。
+- **`warning_summary` 生产者**（SPEC §7.12）：列/契约/前端口径已就绪，尚无写入方；
+  当前一律 `available=false`（如实表示无结构化数据）。建议在真实媒体跑通后再接，避免在跑批前改动执行器/发布事务。
 - **独立验收结论**：等待三个验收代理回报后写入 `executions/2026-11-02-react-web-console-acceptance.md`。

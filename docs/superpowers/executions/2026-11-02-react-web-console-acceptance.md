@@ -153,6 +153,13 @@ ACC_SECURITY_RUN=1 python -m pytest tests/acceptance_security -q   -> 93 passed
   `scripts/e2e_real_run.py` 用 `/srv/media/jellyfin/JELLYFIN/JAV` 的 2 部非 VR 影片验收。
 - TLS 反代 / 非 loopback 部署 / 多跳 `trusted_proxies`；Firefox/Safari；真实 Token 轮换与重启 401。
 - 多进程/多 runtime 共享同一 DB 的并发压测；`provenance=unknown` 的公开可达路径。
+- **`warning_summary` 结构化生产者缺失（SPEC §7.12 未完成）**：`jobs.warning_summary_json` 列、DTO 读取与
+  "available=false 不称'无警告'"的口径已就绪，但**没有任何写入方**——执行器确实返回了结构化计数
+  （`stt_qwen` 的 `coverage/align_missing_chunks/empty_chunks/punct_only_lines`、`stt` 的 `timestamp_stats` 等），
+  但尚未在 `publish_task_artifacts` 同一事务内聚合成 `{code,count,stage,source}` 并持久化。
+  因此当前所有作业（含旧作业）都显示 `available=false`，这是**如实反映无数据**，不是前端丢失。
+  设计要点（后续实施）：纯函数从阶段结果提取（禁止日志正则）；写入口与发布同一 fencing 事务；
+  按 stage 合并、重试时替换该 stage 的旧条目；阈值为显式常量（如 coverage < min_coverage）。
 - CI：新增的 `web` job 与既有两个 Python job 尚未在 GitHub Actions 实跑。
 
 ## 8. 结论
