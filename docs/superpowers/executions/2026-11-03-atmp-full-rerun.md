@@ -62,6 +62,25 @@
 | 4 | ABF-391-U | 108min | succeeded | 3.4m | 18.7m | 0.167 | 11.1s | 213/22 | 9.2G | 9.3m | 30min | 3 | 30.7m | 451/451 | 0.9962 |
 | 5 | ABF-394-U | 122min | succeeded | 54.3s | 20.1m | 0.159 | 12.8s | 243/25 | 9.1G | 183.5m | 43min | 7 | 204.5m† | 509/509 | 0.9984 |
 | 6 | ABF-395 | 134min | succeeded | 1.6m | 19.6m | 0.146 | 17.5s | 265/27 | 8.9G | 6.0m | 102min | 39 | 52.6m† | 516/516 | 0.9967 |
+| 7 | ADN-783-UC | 118min | succeeded | 1.5m | 19.9m | 0.166 | 12.5s | 229/23 | 9.2G | 57.4s | 28min | 6 | 29.6m | 382/382 | 0.9908 |
+| 8 | ATID-799-UC | 117min | succeeded | 1.5m | 15.5m | 0.129 | 13.2s | 233/24 | 8.0G | 6.8s | 2min | 1 | 0.4s | 668/668 | 0.9951 |
+| 9 | CAWB-069-U | 146min | succeeded | 2.3m | 26.7m | 0.180 | 16.2s | 285/29 | 9.2G | 27.2s | 2min | 0 | 25.0m | 818/818 | 0.9962 |
+| 10 | CJOD-539-U | 114min | succeeded | 1.5m | 21.3m | 0.180 | 18.1s | 229/23 | 7.6G | 13.2s | 1min | 0 | 22.7m | 276/276 | 0.9958 |
+| 11 | DLDSS-563-U | 135min | succeeded | 1.7m | 22.6m | 0.162 | 21.4s | 269/27 | 8.7G | 1.6m | 4min | 0 | 25.7m | 899/899 | 0.9981 |
+| 12 | DOCM-003 | 165min | succeeded | 2.2m | 28.3m | 0.165 | 26.5s | 331/34 | 8.0G | 1.8m | 18min | 15 | 69.8m† | 1016/1016 | 0.9987 |
+| 13 | DSOD-096-U | 110min | succeeded | 1.7m | 18.2m | 0.159 | 17.7s | 198/20 | 9.3G | 1.0m | 3min | 1 | 20.7m | 418/418 | 0.9976 |
+| 14 | FNS-270-U | 121min | succeeded | 1.6m | 19.8m | 0.157 | 19.6s | 243/25 | 9.2G | 1.6m | 4min | 1 | 22.7m | 643/643 | 0.9977 |
+| 15 | IPZZ-961-U | 120min | succeeded | 1.8m | 14.7m | 0.118 | 18.6s | 233/24 | 9.2G | 53.3s | 2min | 1 | 17.2m | 425/425 | 0.9956 |
+| 16 | IPZZ-982-U | 152min | succeeded | 2.0m | 25.1m | 0.162 | 24.9s | 300/30 | 9.2G | 1.3m | 4min | 2 | 28.5m | 600/600 | 0.9972 |
+| 17 | IPZZ-991-U | 151min | succeeded | 26.0s | 26.0m | 0.169 | 24.4s | 300/30 | 9.2G | 1.1m | 4min | 3 | 27.6m | 588/588 | 0.9892 |
+| 18 | JUR-853-U | 162min | succeeded | 2.2m | 25.4m | 0.154 | 26.1s | 319/32 | 9.1G | 2.3m | 7min | 6 | 29.9m | 736/736 | 0.9978 |
+| 19 | JUR-856-U | 121min | succeeded | 1.7m | 20.7m | 0.167 | 19.9s | 241/25 | 7.7G | 1.7m | 4min | 2 | 24.0m | 583/583 | 0.9938 |
+| 20 | JUR-890-U | 124min | succeeded | 4.8m | 19.8m | 0.157 | 20.0s | 244/25 | 9.2G | 2.5m | 7min | 5 | 27.3m | 638/638 | 0.9928 |
+| 21 | JUR-897-U | 143min | succeeded | 2.1m | 22.9m | 0.158 | 23.1s | 284/29 | 8.9G | 1.3m | 4min | 2 | 26.5m | 653/653 | 0.9965 |
+| 22 | JUR-902 | 142min | succeeded | 1.7m | 26.5m | 0.183 | 23.7s | 283/29 | 8.0G | 1.5m | 4min | 3 | 29.9m | 595/595 | 0.9978 |
+| 23 | MFYD-196-U | 138min | succeeded | 2.1m | 24.4m | 0.174 | 25.2s | 273/28 | 8.4G | 1.3m | 3min | 1 | 27.9m | 589/589 | 0.9959 |
+| 24 | MIDA-234-U | 120min | succeeded | 33.0s | 13.0m | 0.105 | 19.1s | 240/24 | 9.2G | 18.0s | 3min | 2 | 14.5m | 841/841 | 0.9969 |
+| 25 | MIDA-678-U | 126min | succeeded | 25.2s | 19.3m | 0.150 | 21.7s | 253/26 | 8.1G | 43.7s | 3min | 0 | 20.6m | 853/853 | 0.9980 |
 
 > † 墙钟比各阶段之和多出 10 分钟以上：含主机休眠/服务停机等外部冻结窗口，不代表真实处理耗时。
 
@@ -140,6 +159,65 @@
 - **新口径**：`batch_size=75`、`retry=2`、`max_tokens=15000`、`translate_workers=3`。
 - **代价**：CJOD-439-UC 首轮因 `retry=1` 冻结值被判死（checkpoint 已推进到 21 批），
   归档重提，重新跑 ASR（约 20 分钟）。
+
+
+### 4.7 ASR 卡死根因：我的正则误改了 `[stt_qwen] batch_size`（10 → 75）
+
+- **现象**：13:19 之后所有 stt_qwen 任务停在第一批不产出，GPU 100% 占用但功耗只有 80W、
+  显存 15.9/16.4GB，CJOD-439-UC 与 CJOD-539-U 各卡 8–45 分钟无一条 `batch done`。
+- **误判过程**：先怀疑模型缓存（`model_cache_size=2→1`）、再怀疑 CUDA 上下文、再怀疑
+  VAD 与 ASR 共用显卡；三者均排除——独立脚本加载同一模型 2.4s、转写 20s 切片 1.5s 正常。
+- **根因**：11:31 我用 `re.sub(r"^batch_size = \d+$", "batch_size = 75")` 改翻译批次，
+  该正则**同时命中**了 `[stt_qwen] batch_size = 10` 与 `[stt_whisperx] batch_size = 16`。
+  配置是启动缓存，12:27 重启后生效 → 每批塞 75 个切片（≈75×30s 音频）→ 推理侧假死。
+- **修复**：按 section 精确回调 `[stt_qwen]=10`、`[stt_whisperx]=16`，重启后 batch 日志
+  立刻恢复滚动（显存 8.9GB / 39% / 106W）。
+- **教训**：多 section 同名的键，改配置必须按 section 定位，不能用全局正则。
+- **遗留**：为排查把 `vad_use_gpu` 临时改成 false（VAD 走 CPU），会在下一个静默点恢复 true；
+  期间 VAD 耗时不可与前面 9 部直接比。
+
+
+### 4.8 GPU 闸门二次误伤：服务已热时不该再查显存（15:25 修）
+
+- 现象：14:35 DOCM-003 提交前，驱动按"空闲 ≥1GiB"判定失败（实测只剩 **90MiB**），
+  原地等了 50 分钟没提交。
+- 归因：模型常驻后整卡已被占满（15943/16376MiB），**空闲永远到不了 1GiB**；
+  闸门原本只想拦"外部进程抢卡"，却拦住了自己。
+- 修复：先查 `/metrics` 的 model_cache_misses 判冷热，**热态直接跳过闸门**；
+  冷态仍按 12GiB 严格校验（那是服务自己会 fail-fast 的唯一场景）。
+- 代价：DOCM-003 晚了 50 分钟开始，其它数据不受影响。
+
+
+### 4.9 翻译 token 上限提到 30k，DOCM-003 用「只重跑 translate」救回
+
+- 用户口径：`max_tokens` 15000 → **30000**、`retry` 2 → **3**（retry 是入队冻结，下一轮新作业生效）。
+- 验证点：DOCM-003 重试时回退模型 `deepseek-v4.1-flash` 产出 **17281 token / 97.9s**，
+  在 30k 内不再截断，JSON 正常解析——证实此前失败确由 15k 上限截断导致。
+- 修复方式按用户要求：**保留主任务，只重跑 `translate` 子节点**（`POST /jobs/{id}/retry`
+  只重置失败任务），ASR 产物复用，省掉 28 分钟识别。
+- 结果：DOCM-003 `succeeded`、`verify=ok`，已 adopt 入账。
+
+
+### 4.10 关思考改成"源码直发"：新增 `reasoning_effort` 与段级 `extra_headers`（代理层下线）
+
+- **动因**：此前靠本机改写代理补两个服务不会发的东西——`reasoning_effort=off`（cc 关思考）
+  与 `x-opencode-session`（og 路由必需）。代理是临时手段，用户要求回到源码。
+- **改动（4 文件，+201/−1）**：
+  - `common.py`：新增 `DEFAULT_TRANSLATE_REASONING_EFFORT=""`、`TranslateSettings.reasoning_effort`，
+    `resolve_translate_settings` 收口为**白名单** `off|low|medium|high|xhigh`，其余按"不下发"。
+  - `translate.py`：`_call_translate_api` 支持 `reasoning_effort` 与 `extra_headers`；
+    `_load_llm_profiles` 解析段级 `extra_headers`（JSON，坏值降级为空）与段级
+    `reasoning_effort`（`None`=沿用全局，空串=该段不下发）。
+  - `config.example.ini`：登记两个新键。
+  - 测试 +3 条（payload 下发、枚举白名单、按段解析），`tests/unit` 全量 **599 passed**。
+- **实测（直连，无代理）**：
+  - cc `deepseek/deepseek-v4.1-flash` + `reasoning_effort=off`：**10.3s / 790 token / 思考 0**，
+    75/75 id 全中。
+  - og `glm-5.3-flash` + `x-opencode-session`：正常 200；但**该网关对 `reasoning_effort`
+    返回 400 invalid_reasoning_effort**，故回退段把 `reasoning_effort` 显式置空。
+- **口径**：`[llm]` = cc v4.1-flash（effort off）；`[llm_fallback]` = og glm-5.3-flash
+  （不发 effort、带会话头）；`max_tokens=30000`。
+- 代理 18901/18902 均已停止，配置不再引用任何本地端口。
 
 ## 5. 结论与建议
 
