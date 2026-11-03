@@ -284,3 +284,33 @@ E2E_TOKEN=<同一个 token> python scripts/e2e_real_run.py \
 3. 前端把 400 `field_errors` 也按字段级展示（`isConfigInvalid` 兼容 400）。
 
 边界：只在 0 worker/临时派生配置/Chrome 下成立；未覆盖 NFS 上的 flock、多行续行键、503 `config_unavailable` 装配。
+
+## 附录 D：资源监控独立验收（代理 E，R1–R10）
+
+结论绑定：`HEAD=610820f`、`web/dist sha256=2e2d3eba…37f3`、0 worker 实例（18142），GPU 被真实长测占用 100%。
+
+| 判据 | 结果 | 关键实测 |
+|---|---|---|
+| R1 真实主机数据 | PASS | `memory.total_bytes` 与 `/proc/meminfo` 偏差 0.0%；GPU 名与 `nvidia-smi` 一致；util=100；ratio=0.976 |
+| R2 不用 0 冒充未知 | PASS | `[N/A]` → `vram_bytes=null`；正控 `0` → `0`；真实 WSL 进程显存为 null |
+| R3 缓存与单飞 | PASS | 5 并发：nvidia-smi 调用=2、`cached=[F,T,T,T,T]`、timestamp 不变；2.2s 后重新探测；负控（旁路缓存）10 次调用 |
+| R4 降级 | PASS | 200 + `nvidia_smi_not_found` + `items:[]`，内存仍可用 |
+| R5 超时 | PASS | 200 + `nvidia_smi_timeout`，2.007s（假命令 sleep 3） |
+| **R6 占用者脱敏** | **PARTIAL → 已修** | 冻结的 5 类形态全部脱敏；但 `Authorization: Basic <base64>` 与裸 token 曾泄漏（见 D1） |
+| R7 多卡聚合 | PASS | 用户聚合按 vram 降序、`vram_ratio` 分母=全部卡总显存、进程分母=本卡 |
+| R8 鉴权/暴露面 | PASS | 无/错 Token 401；匿名 `/ui` 200；web 关闭实例 404 |
+| R9 浏览器 | PASS | 数值与接口一致；375px 无溢出；深色对比度 14.51；null 显示"未知"、无 0% |
+| R10 轮询/退避 | PASS | 可见 5.13/5.15s；后台 0 请求；恢复立即；失败退避 5.02/10.01/20.41/30.01s |
+
+### D1：`Authorization` 非 Bearer 形态凭据泄漏（已修）
+
+- 现象：`curl -H "Authorization: Basic dXNlcjpwYXNzd29yZA==" …` → 输出保留 base64；
+  `python upload.py Authorization: ghp_CANARY…` → 原 token 保留。
+- 根因：auth 正则被复用了按 5 组 KV 拼接的替换函数（`group(4)` 是凭据本身），且只吃到第一个非空白 token，
+  `Digest user=u, response=…` 也会残留。
+- 修复：auth 值改为"吃到引号/换行/行尾"，替换函数只保留前缀+认证方案；新增单测覆盖 Basic/Bearer/Digest/裸 token
+  与"普通参数不被改写"（`tests/unit/test_resource_probe.py`）。
+- 复验：`ACC_RESOURCES_RUN=1 pytest tests/acceptance_resources -q` → **23 passed**；
+  浏览器 `pnpm exec playwright test e2e/acceptance_resources` → **6 passed**。
+
+边界：真实多卡未验（R7 用假输出）；R4/R5 用 PATH 注入复现，不等价于驱动挂死；R9/R10 为 Chrome headless。
