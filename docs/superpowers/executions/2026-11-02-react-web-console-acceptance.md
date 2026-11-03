@@ -256,3 +256,31 @@ E2E_TOKEN=<同一个 token> python scripts/e2e_real_run.py \
 
 结论：轮询节律与终止条件符合 SPEC §8/§11.3；本项为**负载行为证据**，不代表真实告警/推送能力。
 未覆盖：真实服务重启后的重连退避、网络抖动下的重试退避（需真实服务中断，未做）。
+
+## 附录 C：配置可视化编辑独立验收（代理 D，C1–C12）
+
+结论绑定：`e262afa` + 未提交工作区快照 + 重启后的 18140 实例（12:29:16 ready）；产品文件哈希前后一致。
+
+| 判据 | 结果 | 关键证据 |
+|---|---|---|
+| C1 schema 覆盖 13 分区/125 键（含 `[llm]`），secret 集合正确 | PASS | 与 `config.example.ini` 集合相等；secret 恰为 `llm.api_key`/`llm_fallback.api_key`/`security.api_token` |
+| C2 密钥不回显 | PASS | canary PUT 后，API/HTML/bundle/日志 7 种编码变体命中 0；正控能命中证明扫描有效 |
+| C3 写回保序 | PASS | 142 行仅 1 行变化；备份=旧文件；`load_settings` 读到新值 |
+| C4 非法值 | PASS | 422 + 字段定位，原文件 sha 不变 |
+| C5 并发（同 revision） | PASS | 3/3 轮一胜一败（200/409），文件=胜者 |
+| C6 跨进程锁 | PASS | 2/2 轮无交错损坏，两键最终生效 |
+| **C7 边界拒绝** | **FAIL → 已修** | 换行/行内注释：非 secret 曾 422、secret 曾 500；统一改为 400 `config_edit_invalid` + 字段定位（`service/config_admin.py` 先做文本边界校验，不再让 `ConfigFieldError` 逃逸成 500） |
+| C8 鉴权 | PASS | 无/错 Token 401，正 Token 200，`/config*` 不在公开面 |
+| C9 web 关闭 | PASS | `/config*` 404，旧 API 200 |
+| C10 审计 | PASS | 日志含 request_id/changed_keys，canary 7 变体命中 0 |
+| C11 浏览器 secret/回读/409 | PASS | 输入框空 + 已配置徽标；改值→保存→刷新回读；两个上下文真实 409 后重载重提 |
+| C12 浏览器错误与警示 | PASS | 字段级错误+输入保留；security/web 危险警示条 |
+
+**修复后复验（2026-11-03 12:4x，新实例 `/tmp/accD-cfg3`）**：后端 **29 passed**、浏览器 **6 passed**。
+
+修复项（均已加回归）：
+1. `require_token`/`allow_placeholder_token` 曾被误判为 secret → 改为精确名+后缀匹配，并强制"boolean 永不 secret"；
+2. C7 文本边界错误码 → 400，secret 分支不再 500；
+3. 前端把 400 `field_errors` 也按字段级展示（`isConfigInvalid` 兼容 400）。
+
+边界：只在 0 worker/临时派生配置/Chrome 下成立；未覆盖 NFS 上的 flock、多行续行键、503 `config_unavailable` 装配。
