@@ -314,3 +314,14 @@ E2E_TOKEN=<同一个 token> python scripts/e2e_real_run.py \
   浏览器 `pnpm exec playwright test e2e/acceptance_resources` → **6 passed**。
 
 边界：真实多卡未验（R7 用假输出）；R4/R5 用 PATH 注入复现，不等价于驱动挂死；R9/R10 为 Chrome headless。
+
+## 附录 E：新页面接入后的验收回归（2026-11-03 13:2x）
+
+新增 `/ui/config`（配置编辑）、`/ui/resources`（资源监控）与两项导航后，重跑既有前端验收 B 套件
+（隔离实例 18130/18131，最终 dist，seed 数据）：
+
+- `pnpm exec playwright test "e2e/acceptance/"` → **28 passed (1.2m)**；
+- 覆盖 F1–F10、M2 产物/日志/归档、M3 批量与 unknown 查证、1280/768/375 三档响应式，**无回归**。
+- 同时复跑资源验收：后端 23 passed、浏览器 6 passed；配置验收：后端 29 passed、浏览器 6 passed。
+
+结论：新增页面/导航没有破坏既有验收判据；三套独立验收（配置 C1–C12、资源 R1–R10、既有 B 套件）在同一 dist 上并存通过。
