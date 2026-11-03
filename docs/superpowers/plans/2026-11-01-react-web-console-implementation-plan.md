@@ -228,3 +228,22 @@ def resolve_preset(preset_id, language, dag, job_config) -> Preset   # 冲突抛
 - **`warning_summary` 生产者**（SPEC §7.12）：列/契约/前端口径已就绪，尚无写入方；
   当前一律 `available=false`（如实表示无结构化数据）。建议在真实媒体跑通后再接，避免在跑批前改动执行器/发布事务。
 - **独立验收结论**：等待三个验收代理回报后写入 `executions/2026-11-02-react-web-console-acceptance.md`。
+
+## 6. 追加需求（2026-11-03 用户提出）：配置可视化编辑
+
+原 SPEC 把"全局配置在线编辑"列为 P2 扩展（§12），用户明确要求本轮实现，且范围是**全部配置可界面修改**（含翻译大模型 `[llm]`）。落地契约：
+
+| 接口 | 语义 |
+|---|---|
+| `GET /config/schema` | 静态 schema：13 个 section / 125 个键（含 `[llm]`、`[llm_fallback]`、`[web]`），含类型/默认值/描述/是否 secret/是否需重启；描述取 `config.example.ini` 注释 |
+| `GET /config` | 当前值视图 + `revision`（文件字节 sha256）；**secret 只回 `is_set`，绝不回明文/长度/哈希**；文件缺失键标 `present:false` |
+| `PUT /config` | `expected_revision` 乐观并发；逐行保序写回（注释/空行/键序/行内注释保留）；临时文件全量 `load_settings` + `validate_startup_security` 校验；备份 `<config>.bak.<UTC>`；`os.replace` 原子替换；`flock` 跨进程互斥 |
+
+安全与边界：
+- 仅在 `web_enabled` 时注册（纯 API 部署不扩大写面）；所有写入受统一 Token 中间件保护；审计只记 `request_id` 与 `changed_keys`，不记值。
+- 不提供重启接口；响应恒带 `restart_required: true` 与"重启后生效"说明（运行中 worker 不回溯已提交作业）。
+- 错误：409 `config_changed`（版本冲突）、422 `invalid_config`（字段级定位，原文件不动）、400 `config_edit_invalid`、503 `config_unavailable`。
+- 前端 `/ui/config`：13 分区导航、类型化控件、secret 只写（已配置/未配置 + 清空）、409 冲突重载、422 字段标红、底部待保存条、危险分区（security/web）警示。
+
+验证：后端 50 条配置专项 + 6 条 `create_app` 集成用例（1213 passed 全量）；前端 12 条页面用例（201 passed 全量）；
+浏览器端 `web/e2e/config-edit.spec.ts` 实测"改值 → 保存 → 刷新回读 → 还原"通过。
