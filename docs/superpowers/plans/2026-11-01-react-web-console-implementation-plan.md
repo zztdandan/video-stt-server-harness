@@ -247,3 +247,23 @@ def resolve_preset(preset_id, language, dag, job_config) -> Preset   # 冲突抛
 
 验证：后端 50 条配置专项 + 6 条 `create_app` 集成用例（1213 passed 全量）；前端 12 条页面用例（201 passed 全量）；
 浏览器端 `web/e2e/config-edit.spec.ts` 实测"改值 → 保存 → 刷新回读 → 还原"通过。
+
+## 7. 追加需求（2026-11-03 用户提出）：资源监控（内存 / GPU / 占用者）
+
+原 SPEC 未包含资源看板；用户要求"实时内存 + GPU 看板 + 谁占用了多少"。落地契约：
+
+| 接口 | 语义 |
+|---|---|
+| `GET /system/resources` | `memory`（/proc/meminfo）、`gpus[]`（nvidia-smi 只读探测：利用率/显存/温度）、每卡 `processes[]`（pid/用户/进程名/显存/命令行提示）、`users[]`（按用户聚合显存与进程数） |
+
+关键设计：
+- **只读探测**：`nvidia-smi --query-*` 直接 argv 调用（不拼 shell）、`timeout=2s`；2 秒 TTL 缓存 + 单飞锁，避免 5 个页面 × 5s 轮询把 nvidia-smi 打成风暴；命中缓存时返回原探测时间并标 `cached:true`。
+- **不用 0 冒充未知**：字段缺失/不可解析一律 `null`；`available:false` + 稳定 reason（`nvidia_smi_not_found/timeout/failed/parse_failed`、`proc_meminfo_unreadable`）。
+- **占用者归因**：pid → `/proc/<pid>/status` 的 Uid → 用户名；`/proc/<pid>/cmdline` 生成命令提示（截断 160 字符，`api_key=/token=/password=/Bearer/sk-/hf_` 脱敏后再截断，避免截半泄露）。
+- **多卡归属**：compute-apps 查询**追加 `gpu_uuid`**（否则多卡无法把进程挂到正确的卡）；解析器兼容三列输出（仅单卡可归属）。
+- **WSL 限制（如实呈现）**：本机 WSL2 的 `nvidia-smi --query-compute-apps` 对每进程显存返回 `[N/A]`，接口输出 `vram_bytes:null`、页面显示"未知"；**不**用整卡利用率冒充单进程占用。
+
+前端 `/ui/resources`：内存卡（总量/已用/可用/swap + 占比条）、每卡一张 GPU 卡（利用率/显存/温度 + 占用进程表）、按用户聚合卡（显存降序）；5s 轮询、页面隐藏暂停、失败 5→10→20→30s 退避、失败保留旧数据并标"已过期"；三种不可用各自给出原因与建议。
+
+验证：后端 `tests/unit/test_resource_probe.py`（27）+ `test_resource_routes.py`（3）；前端 37 例；
+真实只读烟测（0 worker 实例）返回 RTX 4080 SUPER 实时数据；截图 `tmp/shots-final/05b-resources.png`、`24b-mobile-resources.png`、`27b-dark-resources.png`。

@@ -122,6 +122,25 @@
 - 影响面：只影响 5、6 两部的**墙钟**（被休眠拉长），阶段内真实耗时（stt 20.1m / 19.6m）
   与产物校验不受影响；两部均已 `verify=ok`。
 
+
+### 4.6 翻译模型切换（12:30 起，口径第三次变更）
+
+- **背景**：v3.2 每批 208s、单批 1.5 万 token（思考占 1.4 万），翻译是最大瓶颈；
+  用户要求换模型并给出两家 flash 级模型的额度。
+- **横评（batch 75、同一 75 行样本、思考关闭）**：
+  cc `v4-flash-fast` 8.3s/1,051 tok/思考 0；cc `glm-5.3-flash` 41–60s/3.1–4.6k tok；
+  og `glm-5.3-flash` 15.1s/919 tok/思考 9；cc `v4-flash` 105s 截断不可用；
+  og `mimo` 118–152s；og `muse` 区域封锁；其余 64–100s 且烧 1 万级思考 token。
+- **选型**：用户选 og `glm-5.3-flash`（订阅额度 31,580/月；cc `v4-flash-fast` 仅 5,210/月，
+  但更快更省 token）。opencode-go 网关要求 `x-opencode-session` 头，服务端不发，
+  故用**本机补头代理** `tmp/fullrun/og_proxy.py`（127.0.0.1:18901）转发，**不改子仓代码**。
+- **双保险**：`[llm_fallback]` = cc `deepseek-v4-flash-fast`；服务的选择逻辑是
+  "attempt=1 用主模型、≥2 用回退"，所以偶发短响应（实测 glm 会只吐 100 token）在
+  重试轮自动换模型兜住。
+- **新口径**：`batch_size=75`、`retry=2`、`max_tokens=15000`、`translate_workers=3`。
+- **代价**：CJOD-439-UC 首轮因 `retry=1` 冻结值被判死（checkpoint 已推进到 21 批），
+  归档重提，重新跑 ASR（约 20 分钟）。
+
 ## 5. 结论与建议
 
 （跑完后补：每音频小时成本、阶段占比、失败面、对配置的建议）
